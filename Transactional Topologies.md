@@ -1,0 +1,9 @@
+####设计细节
+当使用Transactional Topologies的时候，storm为你做下面这些事情：
+
+ 1. 管理状态：Storm把所有实现Transactional Topologies所必须的状态保存在zookeeper里面，这包括当前的transaction id以及定义每个batch的一些元数据。
+ 2. 协调事物：Storm帮你管理所有的事情，以便决定某个时间点，哪些事物处于processing阶段，哪个事物正在committing。
+ 3. 错误检测：Storm利用acking框架来高效地检测什么时候一个batch被成功处理了，被成功提交了，或者失败了。Storm然后会相应地replay对应的batch。你不需要自己手动做任何acking或者anchoring。
+ 4. 内置的批处理API：Storm在普通bolt之上包装了一层API来提供对tuple的批处理支持。Storm管理所有的协调工作，包括决定什么时候一个bolt接收到一个特定transaction的所有tuple。Storm同时也会自动清理每个transaction所产生的中间数据。
+
+最后，需要注意一点是Transactional Topologies需要一个可以完全重发一个特定batch的消息队列系统（Message Queue）。Kestrel之类的技术做不到这一点，而Apache的Kafka对于这个需求来说是正合适的。同时storm-contrib里面的storm-kafka为Kafka实现了一个事务性的spout。
